@@ -42,6 +42,7 @@ class ApplicationTest {
                 .andExpect(status().isOk());
     }
 
+
     @Test
     public void testCreatePost() throws Exception {
         var post = new Post("another-post", "another post", "body");
