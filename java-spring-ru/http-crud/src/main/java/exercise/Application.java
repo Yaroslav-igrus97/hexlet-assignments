@@ -28,36 +28,44 @@ public class Application {
 
     // BEGIN
     @GetMapping("/posts")
-    public List<Post> getPosts() {
-        return posts;
-    }
+    public List<Post> index(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer limit) {
 
-    @GetMapping("/posts/{id}")
-    public Post getPost(@PathVariable int id) {
-        return posts.get(id);
+        return posts.stream().skip((page - 1) * limit).limit(limit).toList();
     }
 
     @PostMapping("/posts")
-    public Post addPost(@RequestBody Post post) {
+    public Post create(@RequestBody Post post) {
         posts.add(post);
         return post;
     }
 
+    @GetMapping("/posts/{id}")
+    public Optional<Post> show(@PathVariable String id) {
+        var post = posts.stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst();
+        return post;
+    }
+
     @PutMapping("/posts/{id}")
-    public Post updatePost(@PathVariable int id, @RequestBody Post post) {
-        Post oldPost = posts.get(id);
-        if (oldPost != null) {
-            oldPost.setBody(post.getBody());
-            oldPost.setTitle(post.getTitle());
-            posts.set(id, oldPost);
-            return oldPost;
-        } else
-            return null;
+    public Post update(@PathVariable String id, @RequestBody Post data) {
+        var maybePost = posts.stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst();
+        if (maybePost.isPresent()) {
+            var post = maybePost.get();
+            post.setId(data.getId());
+            post.setTitle(data.getTitle());
+            post.setBody(data.getBody());
+        }
+        return data;
     }
 
     @DeleteMapping("/posts/{id}")
-    public void deletePost(@PathVariable int id) {
-        posts.remove(id);
+    public void destroy(@PathVariable String id) {
+        posts.removeIf(p -> p.getId().equals(id));
     }
     // END
 }
